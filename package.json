@@ -1,0 +1,27 @@
+{
+  "name": "micro-os",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "http-server -p 8080 -o",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NelakaWith/micro-os.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NelakaWith/micro-os/issues"
+  },
+  "homepage": "https://github.com/NelakaWith/micro-os#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

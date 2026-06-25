@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Database Engine Test Bench</title>
+    <!-- Tailwind CSS for high-fidelity styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .node-pulse {
+        animation: pulse-border 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse-border {
+        0%,
+        100% {
+          border-color: rgba(99, 102, 241, 0.2);
+        }
+        50% {
+          border-color: rgba(99, 102, 241, 1);
+        }
+      }
+      pre {
+        background: #0f172a;
+        color: #38bdf8;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col"
+  >
+    <!-- Top Navigation Header -->
+    <header
+      class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4"
+    >
+      <div
+        class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">💾</span>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight text-white">
+              Vanilla JS Core Engine Test Bench
+            </h1>
+            <p class="text-xs text-indigo-400 font-mono">
+              Module 1: Modular Engine & In-Memory Indexing
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="flex h-3 w-3 relative">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"
+            ></span>
+          </span>
+          <span class="text-sm font-mono text-slate-400"
+            >DevTools Console Linked (<code class="text-emerald-400"
+              >window.db</code
+            >)</span
+          >
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main
+      class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 w-full"
+    >
+      <!-- COLUMN 1: Dynamic Controllers (lg:span-4) -->
+      <section class="lg:col-span-4 space-y-6">
+        <!-- Command Console -->
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl"
+        >
+          <h2
+            class="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-4 flex items-center gap-2"
+          >
+            <span>⚡</span> Database Controls
+          </h2>
+          <div class="space-y-4">
+            <!-- Standard Mutations -->
+            <div
+              class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+            >
+              <span
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block"
+                >Mutations</span
+              >
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  id="btn-insert"
+                  class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white py-2 px-3 rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-indigo-500/10"
+                >
+                  ➕ Insert Item
+                </button>
+                <button
+                  id="btn-update"
+                  class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white py-2 px-3 rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-violet-500/10"
+                >
+                  📝 Update Item
+                </button>
+              </div>
+              <button
+                id="btn-delete"
+                class="w-full bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 py-2 px-3 rounded-lg text-sm font-semibold transition-colors"
+              >
+                🗑️ Delete Item
+              </button>
+            </div>
+
+            <!-- ACID Transaction Block -->
+            <div
+              class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+            >
+              <span
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block"
+                >ACID Transaction Shell</span
+              >
+              <button
+                id="btn-tx-start"
+                class="w-full bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white py-2 px-3 rounded-lg text-sm font-semibold transition-colors"
+              >
+                🔑 Begin Transaction
+              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  id="btn-tx-commit"
+                  disabled
+                  class="bg-emerald-600/40 text-emerald-300 border border-emerald-500/20 py-2 px-3 rounded-lg text-sm font-semibold transition-all cursor-not-allowed"
+                >
+                  🤝 Commit
+                </button>
+                <button
+                  id="btn-tx-rollback"
+                  disabled
+                  class="bg-red-600/40 text-red-300 border border-red-500/20 py-2 px-3 rounded-lg text-sm font-semibold transition-all cursor-not-allowed"
+                >
+                  ↩️ Rollback
+                </button>
+              </div>
+            </div>
+
+            <!-- History Stacks -->
+            <div
+              class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+            >
+              <span
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2"
+                >Undo/Redo History Engine</span
+              >
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  id="btn-undo"
+                  disabled
+                  class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-white py-2 px-3 rounded-lg text-sm font-semibold transition-colors border border-slate-700"
+                >
+                  ⏪ Undo
+                </button>
+                <button
+                  id="btn-redo"
+                  disabled
+                  class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-white py-2 px-3 rounded-lg text-sm font-semibold transition-colors border border-slate-700"
+                >
+                  ⏩ Redo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Console Logger -->
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col h-64"
+        >
+          <div class="flex justify-between items-center mb-2">
+            <h2
+              class="text-sm font-semibold tracking-wider text-slate-400 uppercase"
+            >
+              💻 Activity Stream
+            </h2>
+            <button
+              id="btn-clear-logs"
+              class="text-xs text-slate-500 hover:text-slate-300 font-mono"
+            >
+              Clear
+            </button>
+          </div>
+          <div
+            id="activity-log"
+            class="bg-slate-950 rounded-lg p-3 font-mono text-xs overflow-y-auto flex-1 space-y-1 text-slate-300 border border-slate-900"
+          >
+            <div class="text-slate-500">// System operations log here.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Memory spectator (lg:span-8) -->
+      <section class="lg:col-span-8 space-y-6">
+        <!-- Real-time Memory Map Spectator -->
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6"
+        >
+          <div
+            class="flex justify-between items-center border-b border-slate-800 pb-4"
+          >
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span>🔍</span> Real-Time Memory Inspector
+              </h2>
+              <p class="text-xs text-slate-400">
+                Deep structural lookup values directly mapped in real-time
+              </p>
+            </div>
+            <!-- Status Badge -->
+            <div
+              id="tx-status"
+              class="bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800 text-xs font-mono font-bold text-slate-400"
+            >
+              TX Status: IDLE
+            </div>
+          </div>
+
+          <!-- Memory Visualizers -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Primary Index Records -->
+            <div class="space-y-2">
+              <h3
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between"
+              >
+                <span>Primary Hash Index (Map)</span>
+                <span
+                  id="stat-count"
+                  class="font-mono bg-slate-950 text-indigo-400 px-2 py-0.5 rounded border border-slate-800/80"
+                  >0 records</span
+                >
+              </h3>
+              <div
+                id="primary-visualizer"
+                class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs min-h-[160px] max-h-[220px] overflow-y-auto space-y-2"
+              >
+                <span class="text-slate-600 block italic"
+                  >Database memory is empty. Create records to allocate
+                  state.</span
+                >
+              </div>
+            </div>
+
+            <!-- Secondary Hash Indexes -->
+            <div class="space-y-2">
+              <h3
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider"
+              >
+                Secondary Index Hash Map
+              </h3>
+              <div
+                id="secondary-visualizer"
+                class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs min-h-[160px] max-h-[220px] overflow-y-auto"
+              >
+                <span class="text-slate-600 block italic"
+                  >No indices configured. Index on "genre" is active.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- LRU Cache Visualizer -->
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <h3
+              class="text-xs font-bold text-slate-500 uppercase tracking-wider flex justify-between"
+            >
+              <span>Least Recently Used (LRU) Cache Double-Linked List</span>
+              <span id="cache-size" class="font-mono text-indigo-400"
+                >size: 0/3</span
+              >
+            </h3>
+            <div
+              class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs overflow-x-auto min-h-[100px] flex items-center justify-start gap-4"
+            >
+              <div id="lru-visualizer" class="flex items-center gap-3 w-full">
+                <span class="text-slate-600 italic"
+                  >Cache layers are cold. Trigger queries to populate
+                  buffer.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inline Test Runner Unit -->
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl"
+        >
+          <div class="flex justify-between items-center mb-4">
+            <h2
+              class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+            >
+              <span>🚀</span> Core Integration Tests
+            </h2>
+            <button
+              id="btn-run-tests"
+              class="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 py-1.5 px-3 rounded-lg text-xs font-bold transition-all"
+            >
+              Run Test Suite
+            </button>
+          </div>
+          <!-- Test Case Lists -->
+          <div
+            id="test-suite-list"
+            class="grid grid-cols-1 md:grid-cols-2 gap-3"
+          >
+            <div
+              class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400"
+            >
+              <span>1. Primary Index Decoupling Test</span>
+              <span id="test-1" class="text-slate-500">UNTESTED</span>
+            </div>
+            <div
+              class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400"
+            >
+              <span>2. O(1) Index Match Test</span>
+              <span id="test-2" class="text-slate-500">UNTESTED</span>
+            </div>
+            <div
+              class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400"
+            >
+              <span>3. LRU Cache Eviction Chain Test</span>
+              <span id="test-3" class="text-slate-500">UNTESTED</span>
+            </div>
+            <div
+              class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400"
+            >
+              <span>4. Undo History Sequence State</span>
+              <span id="test-4" class="text-slate-500">UNTESTED</span>
+            </div>
+            <div
+              class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400"
+            >
+              <span>5. Redo History Recovery Flow</span>
+              <span id="test-5" class="text-slate-500">UNTESTED</span>
+            </div>
+            <div
+              class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400"
+            >
+              <span>6. Transaction Staged Isolation</span>
+              <span id="test-6" class="text-slate-500">UNTESTED</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Visual Dashboard Overlay & Alerts -->
+    <div
+      id="user-alert"
+      class="hidden fixed bottom-6 right-6 bg-slate-900 border border-indigo-500 text-slate-200 px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50 animate-bounce max-w-sm"
+    >
+      <span class="text-xl">💡</span>
+      <span id="alert-text" class="text-xs font-mono"></span>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- DASHBOARD PRESENTATION MODULE ENGINE -->
+    <!-- ========================================================================= -->
+    <script type="module">
+      // Import your ACTUAL custom database engine classes directly!
+      // (Note: Adjust to '../src/db/db-engine.js' if your HTML is placed in a nested testing directory)
+      import { DatabaseEngine } from "../src/db/db-engine.js";
+      import { LRUCache } from "../src/db/lru-cache.js";
+
+      // Instantiate the global database and configure initial parameters
+      const db = new DatabaseEngine();
+      db.createIndex("genre"); // Register index dynamically out of the box
+      window.db = db; // Link to browser DevTools explicitly
+
+      // Demo assets tracking variables
+      let trackIdCounter = 1;
+      const availableArtists = [
+        "Portishead",
+        "Massive Attack",
+        "Tricky",
+        "Morcheeba",
+        "Björk",
+        "Sneaker Pimps",
+      ];
+      const availableGenres = [
+        "Trip-hop",
+        "Electronic",
+        "Downtempo",
+        "Ambient",
+      ];
+
+      // --- Console Helper Logging ---
+      function logger(msg, type = "system") {
+        const container = document.getElementById("activity-log");
+        const entry = document.createElement("div");
+
+        let color = "text-slate-400";
+        if (type === "mut") color = "text-indigo-400";
+        if (type === "tx") color = "text-amber-400";
+        if (type === "success") color = "text-emerald-400";
+        if (type === "err") color = "text-rose-400";
+
+        entry.className = `${color} font-mono mb-1 leading-relaxed`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        container.appendChild(entry);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function triggerAlert(message) {
+        const toast = document.getElementById("user-alert");
+        document.getElementById("alert-text").textContent = message;
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
+      }
+
+      // --- Core UI Renderer Update Pipeline ---
+      function updateSpectatorUI() {
+        // 1. Render Transaction Badge Status
+        const txBadge = document.getElementById("tx-status");
+        const startBtn = document.getElementById("btn-tx-start");
+        const commitBtn = document.getElementById("btn-tx-commit");
+        const rollbackBtn = document.getElementById("btn-tx-rollback");
+
+        if (db.activeTransaction) {
+          txBadge.textContent = "TX Status: RUNNING (UNCOMMITTED)";
+          txBadge.className =
+            "bg-amber-950 px-3 py-1.5 rounded-full border border-amber-500 text-xs font-mono font-bold text-amber-400";
+          startBtn.disabled = true;
+          startBtn.classList.add("opacity-40", "cursor-not-allowed");
+          commitBtn.disabled = false;
+          commitBtn.classList.remove(
+            "bg-emerald-600/40",
+            "text-emerald-300",
+            "border-emerald-500/20",
+            "cursor-not-allowed",
+          );
+          commitBtn.classList.add(
+            "bg-emerald-600",
+            "hover:bg-emerald-500",
+            "text-white",
+          );
+          rollbackBtn.disabled = false;
+          rollbackBtn.classList.remove(
+            "bg-red-600/40",
+            "text-red-300",
+            "border-red-500/20",
+            "cursor-not-allowed",
+          );
+          rollbackBtn.classList.add(
+            "bg-red-600",
+            "hover:bg-red-500",
+            "text-white",
+          );
+        } else {
+          txBadge.textContent = "TX Status: IDLE";
+          txBadge.className =
+            "bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800 text-xs font-mono font-bold text-slate-400";
+          startBtn.disabled = false;
+          startBtn.classList.remove("opacity-40", "cursor-not-allowed");
+          commitBtn.disabled = true;
+          commitBtn.classList.add(
+            "bg-emerald-600/40",
+            "text-emerald-300",
+            "border-emerald-500/20",
+            "cursor-not-allowed",
+          );
+          commitBtn.classList.remove(
+            "bg-emerald-600",
+            "hover:bg-emerald-500",
+            "text-white",
+          );
+          rollbackBtn.disabled = true;
+          rollbackBtn.classList.add(
+            "bg-red-600/40",
+            "text-red-300",
+            "border-red-500/20",
+            "cursor-not-allowed",
+          );
+          rollbackBtn.classList.remove(
+            "bg-red-600",
+            "hover:bg-red-500",
+            "text-white",
+          );
+        }
+
+        // 2. Undo/Redo Buttons
+        document.getElementById("btn-undo").disabled =
+          db.undoStack.length === 0 || db.activeTransaction !== null;
+        document.getElementById("btn-redo").disabled =
+          db.redoStack.length === 0 || db.activeTransaction !== null;
+
+        // 3. Render Primary Records
+        const primaryVis = document.getElementById("primary-visualizer");
+        const totalRecordsLabel = document.getElementById("stat-count");
+        primaryVis.innerHTML = "";
+        totalRecordsLabel.textContent = `${db.records.size} record${db.records.size === 1 ? "" : "s"}`;
+
+        if (db.records.size === 0) {
+          primaryVis.innerHTML = `<span class="text-slate-600 block italic">Database memory is empty. Create records to allocate state.</span>`;
+        } else {
+          for (const [id, record] of db.records) {
+            const row = document.createElement("div");
+            row.className =
+              "bg-slate-900 border border-slate-800/80 p-2.5 rounded-lg flex flex-col gap-1 relative group hover:border-slate-700/80 transition-colors";
+            row.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="text-indigo-400 font-bold">${id}</span>
+                            <span class="text-[10px] bg-slate-950 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">${record.genre}</span>
+                        </div>
+                        <div class="text-white font-semibold text-xs mt-1">"${record.title}"</div>
+                    `;
+            primaryVis.appendChild(row);
+          }
+        }
+
+        // 4. Render Secondary Indexes
+        const secondaryVis = document.getElementById("secondary-visualizer");
+        secondaryVis.innerHTML = "";
+
+        if (db.indexes.size === 0) {
+          secondaryVis.innerHTML = `<span class="text-slate-600 block italic">No index registries configured.</span>`;
+        } else {
+          for (const [indexName, valueMap] of db.indexes) {
+            const idxBlock = document.createElement("div");
+            idxBlock.className = "space-y-2";
+            idxBlock.innerHTML = `<div class="text-xs text-indigo-400 font-bold border-b border-slate-800 pb-1 mb-2">Index Key: "${indexName}"</div>`;
+
+            if (valueMap.size === 0) {
+              idxBlock.innerHTML += `<div class="text-slate-600 italic pl-2">[Empty Tree Map]</div>`;
+            } else {
+              for (const [value, set] of valueMap) {
+                const ids = Array.from(set).join(", ");
+                idxBlock.innerHTML += `
+                                <div class="flex flex-col gap-1 pl-2 mb-2 bg-slate-900/30 p-2 rounded border border-slate-900">
+                                    <div class="text-slate-300 font-semibold font-mono text-[11px]">Value: "${value}"</div>
+                                    <div class="text-[10px] text-slate-500 font-mono">Set Pointers: <span class="text-emerald-400 font-bold">[${ids}]</span></div>
+                                </div>
+                            `;
+              }
+            }
+            secondaryVis.appendChild(idxBlock);
+          }
+        }
+
+        // 5. Render LRU Cache Nodes Linked List
+        const lruVis = document.getElementById("lru-visualizer");
+        const cacheSizeLabel = document.getElementById("cache-size");
+        lruVis.innerHTML = "";
+        cacheSizeLabel.textContent = `size: ${db.cache.map.size}/${db.cache.capacity}`;
+
+        // Traverse the LRU DLL from head to tail to build UI representation
+        let current = db.cache.head;
+        const nodes = [];
+        while (current) {
+          nodes.push(current);
+          current = current.next;
+        }
+
+        nodes.forEach((node, idx) => {
+          const el = document.createElement("div");
+          const isDummy = node.key === "__HEAD__" || node.key === "__TAIL__";
+
+          let borderClass = "border-slate-800 bg-slate-900";
+          if (isDummy) {
+            borderClass =
+              "border-dashed border-slate-700 bg-slate-950 text-slate-500";
+          } else {
+            borderClass =
+              "border-indigo-500/40 bg-slate-900/50 text-slate-100 node-pulse";
+          }
+
+          el.className = `p-3 rounded-xl border ${borderClass} font-mono flex flex-col items-center justify-center min-w-[130px] shadow-lg text-center select-none`;
+
+          if (isDummy) {
+            el.innerHTML = `
+                        <span class="text-[9px] font-bold tracking-widest text-slate-500">${node.key === "__HEAD__" ? "👑 START" : "🏁 END"}</span>
+                        <span class="text-xs font-bold font-sans mt-1 text-slate-600">${node.key === "__HEAD__" ? "Head Boundary" : "Tail Boundary"}</span>
+                    `;
+          } else {
+            el.innerHTML = `
+                        <div class="flex flex-col items-center gap-0.5">
+                            <span class="text-[9px] font-bold text-slate-500">KEY: "${node.key}"</span>
+                            <span class="text-xs font-bold text-indigo-300 font-sans mt-0.5">"${node.value?.[0]?.title || "Query"}"</span>
+                            <span class="text-[9px] text-slate-400 mt-1 bg-slate-950 border border-slate-800/80 px-1 rounded">${node.value?.length || 0} item(s)</span>
+                        </div>
+                    `;
+          }
+
+          lruVis.appendChild(el);
+
+          // Add links between cards if not the tail node
+          if (idx < nodes.length - 1) {
+            const arrow = document.createElement("div");
+            arrow.className =
+              "text-slate-500 text-lg flex flex-col items-center justify-center shrink-0";
+            arrow.innerHTML = `<span>⇄</span>`;
+            lruVis.appendChild(arrow);
+          }
+        });
+      }
+
+      // --- Trigger Button Action Integrations ---
+      function triggerAddTrack() {
+        try {
+          const randomId = `track-${trackIdCounter++}`;
+          const artist =
+            availableArtists[
+              Math.floor(Math.random() * availableArtists.length)
+            ];
+          const genre =
+            availableGenres[Math.floor(Math.random() * availableGenres.length)];
+          const randomTitle = `${artist} - Single Entry #${Math.floor(Math.random() * 900) + 100}`;
+
+          db.insert({ id: randomId, title: randomTitle, genre });
+          logger(
+            `Inserted Record: ${randomId} ("${randomTitle}") [${genre}]`,
+            "mut",
+          );
+
+          // Let's run a cache update query simulation automatically on add to warm up the LRU DLL viz
+          db.query("genre", genre);
+
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(`Error: ${err.message}`);
+        }
+      }
+
+      function triggerUpdateTrack() {
+        try {
+          if (db.records.size === 0) {
+            throw new Error(
+              "No database records exist. Please insert an item first.",
+            );
+          }
+          const randomId = Array.from(db.records.keys())[
+            Math.floor(Math.random() * db.records.size)
+          ];
+          const currentRecord = db.records.get(randomId);
+          const updatedTitle = `${currentRecord.title.split(" (Edited)")[0]} (Edited)`;
+
+          db.update(randomId, { title: updatedTitle });
+          logger(
+            `Updated Record: ${randomId} -> Title: "${updatedTitle}"`,
+            "mut",
+          );
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function triggerDeleteTrack() {
+        try {
+          if (db.records.size === 0) {
+            throw new Error("No database records exist to delete.");
+          }
+          const randomId = Array.from(db.records.keys())[
+            Math.floor(Math.random() * db.records.size)
+          ];
+
+          db.delete(randomId);
+          logger(`Deleted Record: ${randomId}`, "mut");
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function triggerBeginTransaction() {
+        try {
+          db.beginTransaction();
+          logger(`Began Isolated Transaction Frame`, "tx");
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function triggerCommit() {
+        try {
+          db.commit();
+          logger(`Committed Transaction Changes Safely`, "success");
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      // Custom global error rollback mapping
+      function triggerRollback() {
+        try {
+          db.rollback();
+          logger(`Rolled Back Transaction. Restored memory snapshots!`, "tx");
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function triggerUndo() {
+        try {
+          db.undo();
+          logger(`Executed: Revert Command (Undo)`, "mut");
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function triggerRedo() {
+        try {
+          db.redo();
+          logger(`Executed: Re-apply Command (Redo)`, "mut");
+          updateSpectatorUI();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      // --- Core Integration Unit Test Suite ---
+      function runCoreTests() {
+        logger("🚀 Running Core Verification Suite...", "system");
+        const runDb = new DatabaseEngine();
+        runDb.createIndex("genre");
+
+        // Helper to update visual table
+        const updateStatus = (id, result) => {
+          const el = document.getElementById(id);
+          if (result) {
+            el.textContent = "PASSED";
+            el.className = "text-emerald-400 font-bold";
+          } else {
+            el.textContent = "FAILED";
+            el.className = "text-rose-400 font-bold";
+          }
+        };
+
+        try {
+          // Test 1: Primary Index Decoupling
+          runDb.insert({ id: "t1", title: "Sour Times", genre: "Trip-hop" });
+          const query1 = runDb.query("genre", "Trip-hop");
+          query1[0].title = "Malicious Override Attempt";
+          const isDecoupled = runDb.records.get("t1").title === "Sour Times";
+          updateStatus("test-1", isDecoupled);
+
+          // Test 2: O(1) Index Match lookup
+          runDb.insert({ id: "t2", title: "Glory Box", genre: "Trip-hop" });
+          const indexMap = runDb.indexes.get("genre");
+          const isIndexed = indexMap && indexMap.get("Trip-hop").has("t2");
+          updateStatus("test-2", isIndexed);
+
+          // Test 3: LRU Cache Eviction Chain
+          const testCache = new LRUCache(2);
+          testCache.put("A", 1);
+          testCache.put("B", 2);
+          testCache.get("A"); // Access 'A', keeping 'A' active
+          testCache.put("C", 3); // Over capacity, should evict 'B'
+          const isEvicted =
+            testCache.get("B") === null &&
+            testCache.get("A") === 1 &&
+            testCache.get("C") === 3;
+          updateStatus("test-3", isEvicted);
+
+          // Test 4: Undo History Sequence
+          runDb.update("t1", { title: "Sour Times (Remix)" });
+          runDb.undo();
+          const isUndone = runDb.records.get("t1").title === "Sour Times";
+          updateStatus("test-4", isUndone);
+
+          // Test 5: Redo Recovery Flow
+          runDb.redo();
+          const isRedone =
+            runDb.records.get("t1").title === "Sour Times (Remix)";
+          updateStatus("test-5", isRedone);
+
+          // Test 6: Transaction Staged Isolation
+          runDb.beginTransaction();
+          runDb.insert({ id: "t3", title: "Over", genre: "Trip-hop" });
+          runDb.update("t2", { title: "Glory Box (Live)" });
+          runDb.delete("t1");
+
+          runDb.rollback(); // Rollback staged alterations
+          const isIsolated =
+            !runDb.records.has("t3") &&
+            runDb.records.get("t2").title === "Glory Box" &&
+            runDb.records.has("t1");
+          updateStatus("test-6", isIsolated);
+
+          logger(
+            "🎉 Core Unit Test execution completed successfully.",
+            "success",
+          );
+          triggerAlert("Test Suite Ran Perfectly!");
+        } catch (err) {
+          logger(
+            `💥 Execution halted with runtime error: ${err.message}`,
+            "err",
+          );
+        }
+      }
+
+      // --- Bind Programmatic Event Listeners to Bypass ES Scope Isolation ---
+      document
+        .getElementById("btn-insert")
+        .addEventListener("click", triggerAddTrack);
+      document
+        .getElementById("btn-update")
+        .addEventListener("click", triggerUpdateTrack);
+      document
+        .getElementById("btn-delete")
+        .addEventListener("click", triggerDeleteTrack);
+      document
+        .getElementById("btn-tx-start")
+        .addEventListener("click", triggerBeginTransaction);
+      document
+        .getElementById("btn-tx-commit")
+        .addEventListener("click", triggerCommit);
+      document
+        .getElementById("btn-tx-rollback")
+        .addEventListener("click", triggerRollback);
+      document
+        .getElementById("btn-undo")
+        .addEventListener("click", triggerUndo);
+      document
+        .getElementById("btn-redo")
+        .addEventListener("click", triggerRedo);
+      document
+        .getElementById("btn-run-tests")
+        .addEventListener("click", runCoreTests);
+      document
+        .getElementById("btn-clear-logs")
+        .addEventListener("click", () => {
+          document.getElementById("activity-log").innerHTML =
+            '<div class="text-slate-500">// System operations log here.</div>';
+        });
+
+      // Initialize spectator UI values
+      updateSpectatorUI();
+    </script>
+  </body>
+</html>
