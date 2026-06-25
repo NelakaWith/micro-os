@@ -366,8 +366,8 @@
     <script type="module">
       // Import your ACTUAL custom database engine classes directly!
       // (Note: Adjust to '../src/db/db-engine.js' if your HTML is placed in a nested testing directory)
-      import { DatabaseEngine } from "./src/db/db-engine.js";
-      import { LRUCache } from "./src/db/lru-cache.js";
+      import { DatabaseEngine } from "../src/db/db-engine.js";
+      import { LRUCache } from "../src/db/lru-cache.js";
 
       // Instantiate the global database and configure initial parameters
       const db = new DatabaseEngine();
