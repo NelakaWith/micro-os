@@ -3,7 +3,644 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Micro OS | Vanilla JS</title>
+    <title>Vanilla Micro-OS & DB Terminal</title>
+    <!-- Tailwind CSS for high-fidelity terminal UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Smooth glowing effects */
+      .terminal-glow {
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+      }
+      .hud-scanline {
+        background:
+          linear-gradient(rgba(18, 24, 38, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+          linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06)
+          );
+        background-size:
+          100% 4px,
+          6px 100%;
+      }
+      /* Custom scrollbar for HUD panels */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #020617;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1e293b;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #334155;
+      }
+    </style>
   </head>
-  <body></body>
+  <body
+    class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col overflow-x-hidden selection:bg-indigo-500/30 selection:text-indigo-200 hud-scanline"
+  >
+    <!-- Top Navigation OS Bar -->
+    <header
+      class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex justify-between items-center"
+    >
+      <div class="flex items-center gap-3">
+        <span class="text-2xl animate-pulse">🌌</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span
+              class="text-xs font-bold text-indigo-400 font-mono tracking-widest uppercase"
+              >Kernel v1.2.0-stable</span
+            >
+            <span
+              class="bg-indigo-500/10 text-indigo-400 text-[10px] px-2 py-0.5 rounded-full border border-indigo-500/20 font-mono"
+              >STANDALONE</span
+            >
+          </div>
+          <h1 class="text-md font-extrabold tracking-tight text-white">
+            Vanilla JS Micro-Operating System
+          </h1>
+        </div>
+      </div>
+
+      <!-- Telemetry Pill HUD -->
+      <div class="flex items-center gap-6 text-xs font-mono">
+        <div class="hidden sm:flex flex-col items-end">
+          <span
+            class="text-slate-500 uppercase tracking-widest text-[9px] font-bold"
+            >System Render Speed</span
+          >
+          <span id="fps-counter" class="text-emerald-400 font-bold"
+            >60.0 FPS</span
+          >
+        </div>
+        <div class="h-8 w-px bg-slate-900"></div>
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-2 w-2 relative">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
+            ></span>
+          </span>
+          <span class="text-slate-400 font-bold">Main Core Operational</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Master Workspace Grid -->
+    <main
+      class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 w-full items-stretch"
+    >
+      <!-- LEFT COLUMN: Telemetry HUD, Metrics Stream & Controls (lg:span-4) -->
+      <section class="lg:col-span-4 flex flex-col gap-6">
+        <!-- System Resource Diagnostics -->
+        <div
+          class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-2xl backdrop-blur-sm space-y-4"
+        >
+          <h2
+            class="text-xs font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+          >
+            <span>📊</span> Telemetry Diagnostic Console
+          </h2>
+
+          <!-- Live Bar Metrics -->
+          <div class="space-y-3 font-mono text-xs">
+            <!-- CPU Indicator -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-slate-400 font-bold">
+                <span>Main Thread Load</span>
+                <span id="cpu-percent" class="text-indigo-400">0.0%</span>
+              </div>
+              <div
+                class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-900"
+              >
+                <div
+                  id="cpu-bar"
+                  class="bg-indigo-500 h-full w-0 transition-all duration-300"
+                ></div>
+              </div>
+            </div>
+
+            <!-- RAM Memory Allocation -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <span>Engine Heap Allocation</span>
+                <span id="stat-memory" class="text-emerald-400 font-bold"
+                  >Calculating...</span
+                >
+              </div>
+              <div
+                class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-900"
+              >
+                <div
+                  id="ram-bar"
+                  class="h-full bg-emerald-500 transition-all duration-300"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Database Write Latency -->
+            <div
+              class="flex justify-between items-center py-1 border-t border-slate-800/80 pt-2.5"
+            >
+              <span class="text-slate-400">Write Latency (O(1))</span>
+              <span id="latency-write" class="font-bold text-slate-100"
+                >-- ms</span
+              >
+            </div>
+
+            <!-- DB Indexing Status -->
+            <div
+              class="flex justify-between items-center text-[11px] text-slate-500"
+            >
+              <span>Database Indexes Active</span>
+              <span class="text-indigo-400 font-bold">genre (Map)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controller Shell: Controlled Mutability Trigger Panels -->
+        <div
+          class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-2xl backdrop-blur-sm space-y-4"
+        >
+          <h2
+            class="text-xs font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+          >
+            <span>⚙️</span> Micro-OS Orchestration Panel
+          </h2>
+
+          <div class="space-y-3.5">
+            <!-- Database Insertion Controls -->
+            <div
+              class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+            >
+              <div class="flex justify-between items-center">
+                <span
+                  class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block"
+                  >Simulation Feeds</span
+                >
+                <span
+                  id="stat-generated-count"
+                  class="text-[11px] font-mono text-indigo-400 font-bold"
+                  >0 Records Active</span
+                >
+              </div>
+              <button
+                id="btn-seed-data"
+                class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white py-2 px-3 rounded-lg text-xs transition-colors shadow-lg shadow-indigo-500/10"
+              >
+                🚀 Load & Index 10,000 Records
+              </button>
+            </div>
+
+            <!-- ACID Transaction Block -->
+            <div
+              class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+            >
+              <span
+                class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block"
+                >Atomic Transaction Sandboxes</span
+              >
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  id="btn-insert-rand"
+                  class="bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold py-1.5 px-2.5 rounded text-xs transition-all border border-slate-700"
+                >
+                  ➕ Insert Item
+                </button>
+                <button
+                  id="btn-update-rand"
+                  class="bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold py-1.5 px-2.5 rounded text-xs transition-all border border-slate-700"
+                >
+                  📝 Update Item
+                </button>
+              </div>
+              <button
+                id="btn-delete-rand"
+                class="w-full bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 py-1.5 px-2.5 rounded text-xs font-semibold transition-all"
+              >
+                🗑️ Delete Random Record
+              </button>
+            </div>
+
+            <!-- Linear Commands Undo Stack -->
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                id="btn-undo"
+                disabled
+                class="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-slate-800 text-white py-2 px-3 rounded-lg text-xs font-bold transition-all border border-slate-700 cursor-not-allowed"
+              >
+                ⏪ Undo Action
+              </button>
+              <button
+                id="btn-redo"
+                disabled
+                class="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-slate-800 text-white py-2 px-3 rounded-lg text-xs font-bold transition-all border border-slate-700 cursor-not-allowed"
+              >
+                ⏩ Redo Action
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thread Pool monitor indicators -->
+        <div
+          class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-2xl backdrop-blur-sm space-y-3 flex-1 flex flex-col justify-between min-h-[160px]"
+        >
+          <div>
+            <h2
+              class="text-xs font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+            >
+              <span>📡</span> Active Hardware Thread Allocations
+            </h2>
+            <p class="text-[10px] text-slate-500 font-mono mt-0.5">
+              Off-thread search pipeline
+            </p>
+          </div>
+          <!-- Thread Grid -->
+          <div id="thread-allocation-hud" class="grid grid-cols-2 gap-2 my-2">
+            <!-- Dynamic cards inject here -->
+          </div>
+          <div
+            class="text-[9px] text-slate-500 font-mono leading-relaxed bg-slate-950/80 p-2 rounded border border-slate-900"
+          >
+            Query payload structures transfer as raw binary byte ArrayBuffers
+            using zero-copy O(1) allocation rules.
+          </div>
+        </div>
+
+        <!-- Interactive Console Logger -->
+        <div
+          class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-2xl backdrop-blur-sm flex flex-col h-64"
+        >
+          <div class="flex justify-between items-center mb-2">
+            <h2
+              class="text-xs font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+            >
+              <span>💻</span> Activity Stream
+            </h2>
+            <button
+              id="btn-clear-logs"
+              class="text-[10px] text-slate-500 hover:text-slate-300 font-mono"
+            >
+              Clear
+            </button>
+          </div>
+          <div
+            id="activity-log"
+            class="bg-slate-950/80 rounded-lg p-3 font-mono text-[10px] overflow-y-auto flex-1 space-y-1 text-slate-300 border border-slate-950"
+          >
+            <div class="text-slate-500">// System operations log here.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Surgical Rendering Console Dashboard (lg:span-8) -->
+      <section class="lg:col-span-8 flex flex-col">
+        <!-- Dashboard Web Component Container Wrapper -->
+        <div
+          class="bg-slate-900/40 border border-slate-800/80 rounded-2xl shadow-2xl flex-1 flex flex-col p-4 relative min-h-[500px] terminal-glow"
+        >
+          <!-- Terminal Header Accent -->
+          <div
+            class="flex items-center gap-1.5 absolute top-5 left-6 z-10 pointer-events-none"
+          >
+            <span class="w-3 h-3 rounded-full bg-rose-500/70"></span>
+            <span class="w-3 h-3 rounded-full bg-amber-500/70"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500/70"></span>
+          </div>
+
+          <!-- Custom Scoped Component Definition Dashboard -->
+          <div class="flex-1 w-full pt-6 flex flex-col">
+            <sys-dashboard
+              id="sys-controller"
+              class="flex-1 min-h-[540px]"
+            ></sys-dashboard>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- OS Notification System HUD Overlay -->
+    <div
+      id="alert-toast"
+      class="hidden fixed bottom-6 right-6 bg-slate-900 border border-indigo-500 text-slate-200 px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50 animate-bounce max-w-sm"
+    >
+      <span class="text-indigo-400 font-bold text-lg">💡</span>
+      <span id="alert-text" class="text-xs font-mono"></span>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MASTER ORCHESTRATION AND STATE-CONNECTIVITY BOOTSTRAP -->
+    <!-- ========================================================================= -->
+    <script type="module">
+      // Import Module 1, 2, 3, and 5 programmatically from our architectural structures!
+      import { DatabaseEngine } from "./src/db/db-engine.js";
+      import { WorkerPool } from "./src/worker/worker-pool.js";
+      import { SysDashboard } from "./src/ui/sys-dashboard.js";
+
+      // 1. Initialize Kernel Layers
+      const db = new DatabaseEngine();
+      db.createIndex("genre");
+      window.db = db; // Bind to window so you can write custom queries in browser DevTools
+
+      const pool = new WorkerPool(); // Launches isolated concurrency system
+      const dashboard = document.getElementById("sys-controller");
+
+      // Asset Generation definitions
+      let recordsCount = 0;
+      let runningFps = 60;
+      let lastFrameTime = performance.now();
+      const availableArtists = [
+        "Portishead",
+        "Massive Attack",
+        "Tricky",
+        "Morcheeba",
+        "Björk",
+        "Sneaker Pimps",
+      ];
+      const availableGenres = [
+        "Trip-hop",
+        "Electronic",
+        "Downtempo",
+        "Ambient",
+      ];
+
+      // Initial setup and bindings
+      logger("Initializing Vanilla Micro-OS Kernel...", "system");
+      _renderThreadHUD();
+
+      // 2. High-Performance Frame Meter Loop (requestAnimationFrame)
+      function calculateFPS() {
+        const now = performance.now();
+        const delta = now - lastFrameTime;
+        lastFrameTime = now;
+
+        const currentFps = 1000 / delta;
+        runningFps = runningFps * 0.9 + currentFps * 0.1; // Low-pass filter for smooth text
+
+        document.getElementById("fps-counter").textContent =
+          `${runningFps.toFixed(1)} FPS`;
+        document.getElementById("fps-counter").className =
+          runningFps >= 57
+            ? "text-emerald-400 font-bold"
+            : runningFps >= 45
+              ? "text-amber-400 font-bold"
+              : "text-rose-500 font-bold";
+
+        // Simulate raw CPU Load fluctuations dynamically based on thread allocations
+        const cpuLoad = pool.workers.some((w) => w.busy)
+          ? Math.random() * 15 + 15 // background CPU threads running
+          : Math.random() * 2 + 1; // static idle state load
+
+        document.getElementById("cpu-percent").textContent =
+          `${cpuLoad.toFixed(1)}%`;
+        document.getElementById("cpu-bar").style.width = `${cpuLoad}%`;
+
+        // Display simulated RAM heap size
+        const baseMemory = 12.4 + db.records.size * 0.00035;
+        document.getElementById("stat-memory").textContent =
+          `${baseMemory.toFixed(2)} MB`;
+        document.getElementById("ram-bar").style.width =
+          `${Math.min(100, (baseMemory / 40) * 100)}%`;
+
+        requestAnimationFrame(calculateFPS);
+      }
+      requestAnimationFrame(calculateFPS);
+
+      // 3. Telemetry Log and Alerts
+      function logger(msg, type = "system") {
+        const container = document.getElementById("activity-log");
+        const entry = document.createElement("div");
+
+        let color = "text-slate-500";
+        if (type === "mut") color = "text-indigo-400";
+        if (type === "tx") color = "text-amber-400";
+        if (type === "success") color = "text-emerald-400";
+        if (type === "err") color = "text-rose-400";
+
+        entry.className = `${color} font-mono mb-1 text-[11px] leading-relaxed`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        container.appendChild(entry);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function triggerAlert(message) {
+        const toast = document.getElementById("alert-toast");
+        document.getElementById("alert-text").textContent = message;
+        toast.classList.remove("hidden");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
+      }
+
+      // --- Concurrency Thread Allocation HUD updater ---
+      function _renderThreadHUD() {
+        const hud = document.getElementById("thread-allocation-hud");
+        hud.innerHTML = "";
+
+        pool.workers.forEach((w) => {
+          const badge = document.createElement("div");
+          badge.className = `p-2 rounded border text-[10px] font-mono flex items-center justify-between transition-colors ${
+            w.busy
+              ? "border-amber-500 bg-amber-950/20 text-amber-400 animate-pulse"
+              : "border-slate-800 bg-slate-900/60 text-slate-500"
+          }`;
+          badge.innerHTML = `
+                    <span>Core #${w.id}</span>
+                    <span class="font-extrabold uppercase text-[8px]">${w.busy ? "Busy" : "Idle"}</span>
+                `;
+          hud.appendChild(badge);
+        });
+      }
+
+      function _refreshDashboardView() {
+        // Decouple read array from Database map records safely
+        const completeDataset = Array.from(db.records.values());
+        dashboard.loadData(completeDataset);
+
+        // Toggle undo redo controls dynamically based on linear history queue sizes
+        document.getElementById("btn-undo").disabled =
+          db.undoStack.length === 0;
+        document.getElementById("btn-redo").disabled =
+          db.redoStack.length === 0;
+      }
+
+      // --- Execution Handlers (Module 1, 2 and 3) ---
+      async function loadLargeDataset() {
+        logger("Starting background bulk ingestion process...", "system");
+        const start = performance.now();
+
+        const records = [];
+        for (let i = 0; i < 10000; i++) {
+          const artist =
+            availableArtists[
+              Math.floor(Math.random() * availableArtists.length)
+            ];
+          const genre =
+            availableGenres[Math.floor(Math.random() * availableGenres.length)];
+          records.push({
+            id: `pid-${i + 1000}`,
+            title: `${artist} - Ambient Sequence Track ${i + 1}`,
+            genre,
+          });
+        }
+
+        // Seed into the Database engine (Module 1 direct insertion bypasses UI rendering overhead)
+        db.beginTransaction();
+        records.forEach((r) => db.insert(r));
+        db.commit();
+
+        const end = performance.now() - start;
+        document.getElementById("latency-write").textContent =
+          `${(end / 10000).toFixed(4)} ms`;
+        document.getElementById("stat-generated-count").textContent =
+          `10,000 Records Active`;
+        logger(
+          `Loaded 10,000 index items sequentially. Total process write execution: ${end.toFixed(2)}ms`,
+          "success",
+        );
+
+        // Warm up the LRU DLL cache viz
+        db.query("genre", "Trip-hop");
+
+        _refreshDashboardView();
+        triggerAlert("Injected 10k Records Safely!");
+      }
+
+      function insertRandomItem() {
+        try {
+          const randomId = `pid-${Math.floor(Math.random() * 90000) + 10000}`;
+          const artist =
+            availableArtists[
+              Math.floor(Math.random() * availableArtists.length)
+            ];
+          const genre =
+            availableGenres[Math.floor(Math.random() * availableGenres.length)];
+          const randomTitle = `${artist} - Dynamic Process Stream #${Math.floor(Math.random() * 900) + 100}`;
+
+          const writeStart = performance.now();
+          db.insert({ id: randomId, title: randomTitle, genre });
+          const writeLatency = performance.now() - writeStart;
+
+          document.getElementById("latency-write").textContent =
+            `${writeLatency.toFixed(3)} ms`;
+          logger(
+            `Inserted Record: ${randomId} ("${randomTitle}") [${genre}]`,
+            "mut",
+          );
+          _refreshDashboardView();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function updateRandomItem() {
+        try {
+          if (db.records.size === 0)
+            throw new Error(
+              "No database records exist. Please seed data first.",
+            );
+          const randomId = Array.from(db.records.keys())[
+            Math.floor(Math.random() * db.records.size)
+          ];
+          const currentRecord = db.records.get(randomId);
+          const updatedTitle = `${currentRecord.title.split(" (Edited)")[0]} (Edited)`;
+
+          db.update(randomId, { title: updatedTitle });
+          logger(
+            `Updated Record: ${randomId} -> Title: "${updatedTitle}"`,
+            "mut",
+          );
+          _refreshDashboardView();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function deleteRandomItem() {
+        try {
+          if (db.records.size === 0)
+            throw new Error("No database records exist to delete.");
+          const randomId = Array.from(db.records.keys())[
+            Math.floor(Math.random() * db.records.size)
+          ];
+
+          db.delete(randomId);
+          logger(`Deleted Record: ${randomId}`, "mut");
+          _refreshDashboardView();
+        } catch (err) {
+          logger(err.message, "err");
+          triggerAlert(err.message);
+        }
+      }
+
+      function triggerUndo() {
+        try {
+          db.undo();
+          logger(`Executed: Revert Command (Undo)`, "mut");
+          _refreshDashboardView();
+        } catch (err) {
+          logger(err.message, "err");
+        }
+      }
+
+      // Trigger Redo helper
+      function triggerRedo() {
+        try {
+          db.redo();
+          logger(`Executed: Re-apply Command (Redo)`, "mut");
+          _refreshDashboardView();
+        } catch (err) {
+          logger(err.message, "err");
+        }
+      }
+
+      // --- Custom Component Row Click Event Handler (Module 5 Custom Event Propagation) ---
+      dashboard.addEventListener("row-selected", (e) => {
+        const { index, data } = e.detail;
+        logger(
+          `Selected Index ${index} inside Shadow DOM Element. Core details: ID: "${data.id}" - "${data.title}"`,
+          "success",
+        );
+        triggerAlert(`Row selected: ${data.id}`);
+      });
+
+      // 4. Bind Programmatic HUD Button Listeners
+      document
+        .getElementById("btn-seed-data")
+        .addEventListener("click", loadLargeDataset);
+      document
+        .getElementById("btn-insert-rand")
+        .addEventListener("click", insertRandomItem);
+      document
+        .getElementById("btn-update-rand")
+        .addEventListener("click", updateRandomItem);
+      document
+        .getElementById("btn-delete-rand")
+        .addEventListener("click", deleteRandomItem);
+      document
+        .getElementById("btn-undo")
+        .addEventListener("click", triggerUndo);
+      document
+        .getElementById("btn-redo")
+        .addEventListener("click", triggerRedo);
+      document
+        .getElementById("btn-clear-logs")
+        .addEventListener("click", () => {
+          document.getElementById("activity-log").innerHTML =
+            '<div class="text-slate-500">// System operations log here.</div>';
+        });
+
+      // Bootstrap visualizer state initially
+      _refreshDashboardView();
+    </script>
+  </body>
 </html>
