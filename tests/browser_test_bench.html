@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Database Engine Test Bench</title>
+    <title>Database Engine & Worker Pool Test Bench</title>
     <!-- Tailwind CSS for high-fidelity styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -42,7 +42,7 @@
               Vanilla JS Core Engine Test Bench
             </h1>
             <p class="text-xs text-indigo-400 font-mono">
-              Module 1: Modular Engine & In-Memory Indexing
+              Module 1 & 2: Transactional Storage & Off-Thread Parallelism
             </p>
           </div>
         </div>
@@ -68,16 +68,16 @@
     <main
       class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 w-full"
     >
-      <!-- COLUMN 1: Dynamic Controllers (lg:span-4) -->
-      <section class="lg:col-span-4 space-y-6">
-        <!-- Command Console -->
+      <!-- COLUMN 1: Dynamic Controllers (lg:span-5) -->
+      <section class="lg:col-span-5 space-y-6">
+        <!-- Module 1: In-Memory Database Controls -->
         <div
           class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl"
         >
           <h2
             class="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-4 flex items-center gap-2"
           >
-            <span>⚡</span> Database Controls
+            <span>⚡</span> Module 1: Database Controls
           </h2>
           <div class="space-y-4">
             <!-- Standard Mutations -->
@@ -170,6 +170,73 @@
           </div>
         </div>
 
+        <!-- Module 2: Multi-Threaded Processor Controls -->
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4"
+        >
+          <h2
+            class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+          >
+            <span>🚀</span> Module 2: Worker Thread Controls
+          </h2>
+
+          <!-- Heavy Data Generator -->
+          <div
+            class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+          >
+            <div class="flex justify-between items-center">
+              <span
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block"
+                >Scale Dataset Sandbox</span
+              >
+              <span
+                id="stat-generated-count"
+                class="text-xs font-mono text-indigo-400 font-bold"
+                >0 Items Cached</span
+              >
+            </div>
+            <button
+              id="btn-gen-data"
+              class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white py-2 px-3 rounded-lg text-sm font-semibold transition-colors"
+            >
+              ⚙️ Generate 15,000 Records
+            </button>
+          </div>
+
+          <!-- Async Off-Thread Benchmarks -->
+          <div
+            class="p-3 bg-slate-950/50 rounded-lg border border-slate-800/80 space-y-2"
+          >
+            <span
+              class="text-xs font-bold text-slate-500 uppercase tracking-wider block"
+              >Concurrency Testing</span
+            >
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                id="btn-run-main-query"
+                disabled
+                class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/20 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-not-allowed"
+              >
+                ⚠️ Main Thread (Block UI)
+              </button>
+              <button
+                id="btn-run-worker-query"
+                disabled
+                class="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-not-allowed"
+              >
+                ⚡ Worker Pool (Multi-Thread)
+              </button>
+            </div>
+            <button
+              id="btn-run-timeout"
+              disabled
+              class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-not-allowed"
+            >
+              🛡️ Trigger Stalled Worker (Timeout)
+            </button>
+          </div>
+        </div>
+
         <!-- Interactive Console Logger -->
         <div
           class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col h-64"
@@ -196,8 +263,8 @@
         </div>
       </section>
 
-      <!-- COLUMN 2: Memory spectator (lg:span-8) -->
-      <section class="lg:col-span-8 space-y-6">
+      <!-- COLUMN 2: Memory spectator & Diagnostic Telemetry (lg:span-7) -->
+      <section class="lg:col-span-7 space-y-6">
         <!-- Real-time Memory Map Spectator -->
         <div
           class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6"
@@ -238,7 +305,7 @@
               </h3>
               <div
                 id="primary-visualizer"
-                class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs min-h-[160px] max-h-[220px] overflow-y-auto space-y-2"
+                class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs min-h-[160px] max-h-[180px] overflow-y-auto space-y-2"
               >
                 <span class="text-slate-600 block italic"
                   >Database memory is empty. Create records to allocate
@@ -256,7 +323,7 @@
               </h3>
               <div
                 id="secondary-visualizer"
-                class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs min-h-[160px] max-h-[220px] overflow-y-auto"
+                class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs min-h-[160px] max-h-[180px] overflow-y-auto"
               >
                 <span class="text-slate-600 block italic"
                   >No indices configured. Index on "genre" is active.</span
@@ -284,6 +351,84 @@
                   buffer.</span
                 >
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Worker Pool Spectator HUD -->
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4"
+        >
+          <div
+            class="flex justify-between items-center border-b border-slate-800 pb-3"
+          >
+            <div>
+              <h2
+                class="text-sm font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+              >
+                <span>📡</span> Worker Pool Thread Allocator
+              </h2>
+              <p class="text-[11px] text-slate-500 font-mono">
+                Bypassing struct-clones with transferable ArrayBuffers
+              </p>
+            </div>
+            <span
+              id="stat-active-threads"
+              class="text-xs font-mono font-bold text-indigo-400 bg-slate-950 px-2 py-1 rounded border border-slate-800"
+            >
+              Threads: Calculating...
+            </span>
+          </div>
+
+          <!-- Worker State Grid -->
+          <div
+            id="worker-pool-vis"
+            class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+          >
+            <div
+              class="col-span-full text-slate-500 italic text-xs py-2 text-center font-mono"
+            >
+              Initialize Dataset to boot underlying thread hardware structures.
+            </div>
+          </div>
+
+          <!-- Benchmarks HUD telemetry -->
+          <div
+            class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800 font-mono text-xs"
+          >
+            <div
+              class="bg-slate-950 p-3 rounded-lg border border-slate-900 flex flex-col justify-between"
+            >
+              <span
+                class="text-[10px] text-rose-400 font-bold uppercase tracking-wider"
+                >Main Thread Query</span
+              >
+              <div
+                id="telemetry-main-thread"
+                class="text-lg font-bold text-white mt-1"
+              >
+                --
+              </div>
+              <span class="text-[9px] text-slate-500 mt-1 block"
+                >Renders lock, halts event loop</span
+              >
+            </div>
+            <div
+              class="bg-slate-950 p-3 rounded-lg border border-slate-900 flex flex-col justify-between"
+            >
+              <span
+                class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider"
+                >Off-Thread Query</span
+              >
+              <div
+                id="telemetry-worker-thread"
+                class="text-lg font-bold text-white mt-1"
+              >
+                --
+              </div>
+              <span class="text-[9px] text-slate-500 mt-1 block"
+                >Async sorting, 60 FPS butter</span
+              >
             </div>
           </div>
         </div>
@@ -364,18 +509,44 @@
     <!-- DASHBOARD PRESENTATION MODULE ENGINE -->
     <!-- ========================================================================= -->
     <script type="module">
-      // Import your ACTUAL custom database engine classes directly!
-      // (Note: Adjust to '../src/db/db-engine.js' if your HTML is placed in a nested testing directory)
-      import { DatabaseEngine } from "../src/db/db-engine.js";
-      import { LRUCache } from "../src/db/lru-cache.js";
+      // Helper to dynamically resolve relative paths against window.location.href to guarantee
+      // successful resolution in non-hierarchical base scheme environments (like blob:, file:, data:, or specific webview wrappers)
+      const resolveModulePath = (relativePath) => {
+        try {
+          return new URL(relativePath, window.location.href).href;
+        } catch (e) {
+          return relativePath;
+        }
+      };
 
-      // Instantiate the global database and configure initial parameters
+      // Dynamically import your actual core custom modules, eliminating non-hierarchical path specifier errors
+      const dbModule = await import(
+        resolveModulePath("../src/db/db-engine.js")
+      );
+      const lruModule = await import(
+        resolveModulePath("../src/db/lru-cache.js")
+      );
+      const workerModule = await import(
+        resolveModulePath("../src/worker/worker-pool.js")
+      );
+
+      const DatabaseEngine = dbModule.DatabaseEngine;
+      const LRUCache = lruModule.LRUCache;
+      const WorkerPool = workerModule.WorkerPool;
+
+      // Instantiate database, register index, and bind to window.db for manual console access
       const db = new DatabaseEngine();
-      db.createIndex("genre"); // Register index dynamically out of the box
-      window.db = db; // Link to browser DevTools explicitly
+      db.createIndex("genre");
+      window.db = db;
+
+      // Initialize Module 2 Worker Pool matching exact hardware core capacity
+      const pool = new WorkerPool();
+      document.getElementById("stat-active-threads").textContent =
+        `Max Core Threads: ${pool.maxWorkers}`;
 
       // Demo assets tracking variables
       let trackIdCounter = 1;
+      let scaleDataset = []; // Module 2 local testing sandbox
       const availableArtists = [
         "Portishead",
         "Massive Attack",
@@ -601,9 +772,42 @@
             lruVis.appendChild(arrow);
           }
         });
+
+        // Update thread allocation indicators in pool UI
+        updateWorkerPoolUI();
       }
 
-      // --- Trigger Button Action Integrations ---
+      // --- Worker Pool State Visualizer Renderer ---
+      function updateWorkerPoolUI() {
+        const container = document.getElementById("worker-pool-vis");
+        container.innerHTML = "";
+
+        if (pool.workers.length === 0) {
+          container.innerHTML = `<div class="col-span-full text-slate-500 italic text-xs py-2 text-center font-mono">No hardware cores allocated. Run dataset generator.</div>`;
+          return;
+        }
+
+        pool.workers.forEach((w) => {
+          const card = document.createElement("div");
+          const stateClass = w.busy
+            ? "border-amber-500 bg-amber-950/20 text-amber-300"
+            : "border-slate-800 bg-slate-900 text-slate-400";
+
+          card.className = `p-3 rounded-lg border ${stateClass} flex justify-between items-center font-mono text-xs transition-all duration-300`;
+          card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="h-2.5 w-2.5 rounded-full ${w.busy ? "bg-amber-400 animate-pulse" : "bg-slate-600"}"></span>
+                        <span class="font-bold">Core Worker #${w.id}</span>
+                    </div>
+                    <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded ${w.busy ? "bg-amber-500/20 text-amber-400 animate-pulse" : "bg-slate-950 text-slate-500"}">
+                        ${w.busy ? "Active" : "Idle"}
+                    </span>
+                `;
+          container.appendChild(card);
+        });
+      }
+
+      // --- Trigger Button Action Integrations (Module 1) ---
       function triggerAddTrack() {
         try {
           const randomId = `track-${trackIdCounter++}`;
@@ -621,9 +825,8 @@
             "mut",
           );
 
-          // Let's run a cache update query simulation automatically on add to warm up the LRU DLL viz
+          // Query immediately to warm cache viz
           db.query("genre", genre);
-
           updateSpectatorUI();
         } catch (err) {
           logger(err.message, "err");
@@ -696,7 +899,6 @@
         }
       }
 
-      // Custom global error rollback mapping
       function triggerRollback() {
         try {
           db.rollback();
@@ -727,6 +929,167 @@
         } catch (err) {
           logger(err.message, "err");
           triggerAlert(err.message);
+        }
+      }
+
+      // --- Trigger Actions (Module 2 Parallel Computing) ---
+      function generateScaleData() {
+        logger("Generating 15,000 telemetry database objects...", "system");
+        scaleDataset = [];
+
+        for (let i = 0; i < 15000; i++) {
+          scaleDataset.push({
+            id: `gen-${i}`,
+            title: `Synthetic Track Track #${i}`,
+            genre:
+              i % 3 === 0 ? "Electronic" : i % 3 === 1 ? "Trip-hop" : "Ambient",
+            duration: Math.floor(Math.random() * 400) + 120,
+          });
+        }
+
+        document.getElementById("stat-generated-count").textContent =
+          `${scaleDataset.length.toLocaleString()} Items Loaded`;
+        logger(
+          `Successfully allocated 15,000 array references in-memory.`,
+          "success",
+        );
+
+        // Unlock thread bench queries
+        document.getElementById("btn-run-main-query").disabled = false;
+        document
+          .getElementById("btn-run-main-query")
+          .classList.remove(
+            "bg-rose-600/20",
+            "text-rose-300",
+            "border-rose-500/20",
+            "cursor-not-allowed",
+          );
+        document
+          .getElementById("btn-run-main-query")
+          .classList.add("bg-rose-600", "hover:bg-rose-500", "text-white");
+
+        document.getElementById("btn-run-worker-query").disabled = false;
+        document
+          .getElementById("btn-run-worker-query")
+          .classList.remove(
+            "bg-emerald-600/40",
+            "text-emerald-300",
+            "border-emerald-500/20",
+            "cursor-not-allowed",
+          );
+        document
+          .getElementById("btn-run-worker-query")
+          .classList.add(
+            "bg-emerald-600",
+            "hover:bg-emerald-500",
+            "text-white",
+          );
+
+        document.getElementById("btn-run-timeout").disabled = false;
+        document
+          .getElementById("btn-run-timeout")
+          .classList.remove(
+            "bg-slate-800",
+            "text-slate-300",
+            "border-slate-700",
+            "cursor-not-allowed",
+          );
+        document
+          .getElementById("btn-run-timeout")
+          .classList.add(
+            "bg-indigo-600/10",
+            "hover:bg-indigo-600/20",
+            "text-indigo-400",
+            "border-indigo-500/20",
+          );
+
+        updateSpectatorUI();
+      }
+
+      function runMainThreadBenchmark() {
+        logger("Running query on Main UI Thread (Synchronous)...", "system");
+        const telemetryEl = document.getElementById("telemetry-main-thread");
+        telemetryEl.textContent = "Processing...";
+
+        // Delay execution slightly to allow UI elements to render the "Processing" state
+        setTimeout(() => {
+          const start = performance.now();
+
+          // Standard on-thread filter and sort sequence
+          const filtered = scaleDataset.filter(
+            (item) => item.genre === "Ambient",
+          );
+          filtered.sort((a, b) => b.duration - a.duration);
+
+          const end = performance.now() - start;
+          telemetryEl.textContent = `${end.toFixed(2)} ms`;
+          logger(
+            `Main Thread completed Ambient query. Render lock lasted: ${end.toFixed(2)}ms`,
+            "mut",
+          );
+          updateSpectatorUI();
+        }, 50);
+      }
+
+      async function runWorkerBenchmark() {
+        logger("Dispatching Query task to off-thread Worker Pool...", "system");
+        const telemetryEl = document.getElementById("telemetry-worker-thread");
+        telemetryEl.textContent = "Processing...";
+
+        const start = performance.now();
+        updateWorkerPoolUI(); // Render active worker color change
+
+        try {
+          // Dispatch parallel processing logic async!
+          const results = await pool.queryAsync(scaleDataset, {
+            filterField: "genre",
+            filterValue: "Ambient",
+            sortField: "duration",
+            sortOrder: "desc",
+          });
+
+          const end = performance.now() - start;
+          telemetryEl.textContent = `${end.toFixed(2)} ms`;
+          logger(
+            `Worker Pool query resolved in: ${end.toFixed(2)}ms. Match count: ${results.length}`,
+            "success",
+          );
+        } catch (err) {
+          telemetryEl.textContent = "Error";
+          logger(`Worker error: ${err.message}`, "err");
+        } finally {
+          updateSpectatorUI();
+        }
+      }
+
+      async function triggerWorkerTimeout() {
+        logger(
+          "Triggering Stalled Worker test (Simulating tight 1ms Watchdog timeout limit)...",
+          "tx",
+        );
+
+        try {
+          // Trigger a query with an extremely strict 1ms limit (forces a timeout before processing finishes)
+          await pool.queryAsync(
+            scaleDataset,
+            {
+              filterField: "genre",
+              filterValue: "Ambient",
+              sortField: "duration",
+              sortOrder: "desc",
+            },
+            1,
+          ); // 1ms threshold
+
+          logger("Success? Timeout was not triggered.", "system");
+        } catch (err) {
+          logger(`💥 Watchdog System Intervened: ${err.message}`, "err");
+          logger(
+            "Terminated stalled worker. Spawned fresh core replacement thread in worker pool.",
+            "success",
+          );
+        } finally {
+          updateSpectatorUI();
         }
       }
 
@@ -805,10 +1168,7 @@
           );
           triggerAlert("Test Suite Ran Perfectly!");
         } catch (err) {
-          logger(
-            `💥 Execution halted with runtime error: ${err.message}`,
-            "err",
-          );
+          logger(`💥 Execution halted with error: ${err.message}`, "err");
         }
       }
 
@@ -846,6 +1206,20 @@
           document.getElementById("activity-log").innerHTML =
             '<div class="text-slate-500">// System operations log here.</div>';
         });
+
+      // Module 2 bindings
+      document
+        .getElementById("btn-gen-data")
+        .addEventListener("click", generateScaleData);
+      document
+        .getElementById("btn-run-main-query")
+        .addEventListener("click", runMainThreadBenchmark);
+      document
+        .getElementById("btn-run-worker-query")
+        .addEventListener("click", runWorkerBenchmark);
+      document
+        .getElementById("btn-run-timeout")
+        .addEventListener("click", triggerWorkerTimeout);
 
       // Initialize spectator UI values
       updateSpectatorUI();
