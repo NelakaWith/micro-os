@@ -126,7 +126,7 @@ export class SysDashboard extends HTMLElement {
 
     // Instantiate text scanner directly within shadow DOM container
     this.textScanner = new TextScanner(
-      this.grid.shadowRoot.querySelector(".scroller-content"),
+      this.grid.shadowRoot.querySelector(".virtual-scroller"),
     );
   }
 

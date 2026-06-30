@@ -1,114 +1,153 @@
 /**
- * Surgical DOM Text Search and Highlight Engine.
- * Employs native TreeWalker & Range APIs to highlight matches without
- * rebuilding outer HTML, keeping bound event listeners intact.
+ * Surgical DOM Text Scanner.
+ * Employs native document TreeWalkers and DocumentFragment injection to isolate
+ * search terms, highlighting strings directly in text nodes without shifting indices or crashing the browser.
  */
 export class TextScanner {
   /**
-   * @param {HTMLElement} rootContainer - The container boundary of the target search area.
+   * @param {HTMLElement} container - The wrapper DOM Node to search inside.
    */
-  constructor(rootContainer) {
-    this.root = rootContainer;
-    this.activeHighlights = [];
+  constructor(container) {
+    if (!container) {
+      throw new Error("TextScanner needs an active container to traverse.");
+    }
+    this.container = container;
+    this.highlights = []; // Stack of active document restore references
   }
 
   /**
-   * Clears any active highlight span wraps from the DOM tree, restoring
-   * original, unified text nodes to keep layout memory clean.
+   * Scans target text nodes directly and swaps them with fragment nodes containing highlighted elements.
+   * Bypasses innerHTML, preserving active JS event listeners on elements.
+   * @param {string} searchTerm - String text to highlight.
    */
-  clear() {
-    this.activeHighlights.forEach((span) => {
-      if (span.parentNode) {
-        const textNode = document.createTextNode(span.textContent);
-        span.parentNode.replaceChild(textNode, span);
-        // Normalize recombines split text nodes to keep DOM structure optimal
-        if (textNode.parentNode) {
-          textNode.parentNode.normalize();
-        }
-      }
-    });
-    this.activeHighlights = [];
-  }
+  highlight(searchTerm) {
+    this.clear(); // Revert former highlights first
 
-  /**
-   * Traverses all text nodes surgically to apply styled highlight wraps.
-   * @param {string} query - The target search term.
-   * @param {string} [highlightClass] - Custom CSS class applied to matches.
-   */
-  highlight(
-    query,
-    highlightClass = "bg-yellow-500/30 text-yellow-200 rounded-sm px-0.5",
-  ) {
-    this.clear(); // Reset previous scans first
-    if (!query || typeof query !== "string" || !query.trim()) return;
+    if (
+      !searchTerm ||
+      typeof searchTerm !== "string" ||
+      searchTerm.trim() === ""
+    ) {
+      return;
+    }
 
-    const normalizedQuery = query.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
 
-    // 1. Traverse raw text nodes directly using native TreeWalker
+    // 1. Initialize document TreeWalker focused strictly on TEXT_NODES
     const walker = document.createTreeWalker(
-      this.root,
+      this.container,
       NodeFilter.SHOW_TEXT,
-      null,
-      false,
+      {
+        acceptNode: (node) => {
+          const parent = node.parentElement;
+          if (parent) {
+            const tagName = parent.tagName.toUpperCase();
+            if (
+              tagName === "SCRIPT" ||
+              tagName === "STYLE" ||
+              parent.classList.contains("scanner-highlight")
+            ) {
+              return NodeFilter.FILTER_REJECT;
+            }
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      },
     );
 
-    const targetNodes = [];
+    const textNodes = [];
     let currentNode = walker.nextNode();
-
     while (currentNode) {
-      // Exclude text node children belonging to interactive control regions or templates
-      const parentTag = currentNode.parentNode?.tagName?.toUpperCase();
-      if (
-        parentTag !== "SCRIPT" &&
-        parentTag !== "STYLE" &&
-        parentTag !== "TEXTAREA"
-      ) {
-        targetNodes.push(currentNode);
-      }
+      textNodes.push(currentNode);
       currentNode = walker.nextNode();
     }
 
-    // 2. Search matches across identified text elements
-    targetNodes.forEach((node) => {
-      const nodeText = node.nodeValue.toLowerCase();
-      let matchIdx = nodeText.indexOf(normalizedQuery);
+    // 2. Iterate backward through the found text nodes to safely replace them
+    for (let i = textNodes.length - 1; i >= 0; i--) {
+      const node = textNodes[i];
+      const textVal = node.nodeValue;
+      const textLower = textVal.toLowerCase();
+      let matchIdx = textLower.indexOf(searchLower);
 
-      // Keep looping if text node contains multiple matches
+      if (matchIdx === -1) continue; // Skip if no occurrences found
+
+      const fragment = document.createDocumentFragment();
+      let lastIdx = 0;
+
+      // Extract all matched character instances within this isolated text element
       while (matchIdx !== -1) {
-        const range = document.createRange();
-
-        // Target coordinates precisely matching letter boundaries
-        range.setStart(node, matchIdx);
-        range.setEnd(node, matchIdx + query.length);
-
-        const highlightSpan = document.createElement("span");
-        highlightSpan.className = highlightClass;
-
-        try {
-          // Wrap only the target letters without rebuilding outer container
-          range.surroundContents(highlightSpan);
-          this.activeHighlights.push(highlightSpan);
-        } catch (err) {
-          // Guard boundary if match splits across adjacent element links
-          console.warn(
-            "Surgical Wrap interrupted across element boundary:",
-            err,
+        // Append text before the match
+        if (matchIdx > lastIdx) {
+          fragment.appendChild(
+            document.createTextNode(textVal.substring(lastIdx, matchIdx)),
           );
         }
 
-        // Re-align walker index targeting the rest of the text block
-        const remainingTextNode = highlightSpan.nextSibling;
-        if (
-          remainingTextNode &&
-          remainingTextNode.nodeType === Node.TEXT_NODE
-        ) {
-          node = remainingTextNode;
-          const updatedText = node.nodeValue.toLowerCase();
-          matchIdx = updatedText.indexOf(normalizedQuery);
-        } else {
-          break;
-        }
+        // Create the highlighted Span container
+        const highlightSpan = document.createElement("span");
+        highlightSpan.className =
+          "scanner-highlight bg-amber-500 text-slate-950 font-bold px-0.5 rounded";
+        highlightSpan.textContent = textVal.substring(
+          matchIdx,
+          matchIdx + searchTerm.length,
+        );
+        fragment.appendChild(highlightSpan);
+
+        lastIdx = matchIdx + searchTerm.length;
+        matchIdx = textLower.indexOf(searchLower, lastIdx);
       }
-    });
+
+      // Append remaining text after the final match
+      if (lastIdx < textVal.length) {
+        fragment.appendChild(
+          document.createTextNode(textVal.substring(lastIdx)),
+        );
+      }
+
+      const parent = node.parentNode;
+      if (parent) {
+        const firstInsertedNode = fragment.firstChild;
+        const insertedNodes = Array.from(fragment.childNodes);
+
+        // Track state parameters so we can safely roll back later
+        this.highlights.push({
+          parent,
+          originalTextNode: node,
+          firstInsertedNode,
+          insertedNodes,
+        });
+
+        // Swap the plain text node with the compiled fragment
+        parent.replaceChild(fragment, node);
+      }
+    }
+  }
+
+  /**
+   * Restores highlighted nodes back to their original text node coordinates.
+   */
+  clear() {
+    // Traverse backwards to avoid DOM structure hierarchy collapses
+    for (let i = this.highlights.length - 1; i >= 0; i--) {
+      const h = this.highlights[i];
+
+      // Ensure the parent is still active in the DOM tree
+      if (h.parent && h.parent.isConnected) {
+        // Place the original un-mutated text node back exactly where the fragment started
+        if (h.firstInsertedNode.parentNode === h.parent) {
+          h.parent.insertBefore(h.originalTextNode, h.firstInsertedNode);
+        }
+
+        // Clean up all highlighted text spans and sibling text pieces
+        h.insertedNodes.forEach((child) => {
+          if (child.parentNode === h.parent) {
+            h.parent.removeChild(child);
+          }
+        });
+
+        h.parent.normalize(); // Cleanly merge text coordinates back together
+      }
+    }
+    this.highlights = [];
   }
 }

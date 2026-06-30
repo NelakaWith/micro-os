@@ -8,20 +8,7 @@ export class VirtualGrid extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
 
-    // Core state tracking
-    this._items = [];
-    this._itemHeight = 60; // Expected default height per item row in px
-    this._renderCallback = null;
-
-    // Viewport DOM placeholders
-    this.viewport = null;
-    this.scroller = null;
-
-    // Track active DOM nodes currently mapped to indices
-    this.visibleNodes = new Map(); // index -> DOMElement
-  }
-
-  connectedCallback() {
+    // Render viewport DOM structure immediately in constructor
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -59,6 +46,16 @@ export class VirtualGrid extends HTMLElement {
     this.viewport = this.shadowRoot.querySelector(".virtual-viewport");
     this.scroller = this.shadowRoot.querySelector(".virtual-scroller");
 
+    // Core state tracking
+    this._items = [];
+    this._itemHeight = 60; // Expected default height per item row in px
+    this._renderCallback = null;
+
+    // Track active DOM nodes currently mapped to indices
+    this.visibleNodes = new Map(); // index -> DOMElement
+  }
+
+  connectedCallback() {
     // Bind high-frequency scroll event with requestAnimationFrame throttling
     let scrollScheduled = false;
     this.viewport.addEventListener(
