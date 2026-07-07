@@ -45,6 +45,8 @@ The system is constructed as a distributed, event-driven architecture partitione
 
 ### Module 1: The Core In-Memory Engine (The Database)
 
+*📄 Detailed Specification: [docs/Module 1 The Core In-Memory Engine.md](docs/Module%201%20The%20Core%20In-Memory%20Engine.md)*
+
 An ACID-compliant, indexed key-value engine with history undo/redo structures and transaction isolation.
 
 - **Primary and Secondary Indexes:** Master records live in a primary hash `Map`. Dynamically registered properties maintain secondary index maps (`Map<string, Map<any, Set<string>>>`), converting linear query searches from slow $O(N)$ table sweeps to instantaneous $O(1)$ map lookups.
@@ -54,6 +56,8 @@ An ACID-compliant, indexed key-value engine with history undo/redo structures an
 
 ### Module 2: The Multi-Threaded Processor (Web Workers)
 
+*📄 Detailed Specification: [docs/Module 2 The Multi-Threaded Processor.md](docs/Module%202%20The%20Multi-Threaded%20Processor.md)*
+
 Offloads resource-intensive query compilation, filtering, and sorting to secondary hardware threads, preventing UI frame drops.
 
 - **Inline Web Workers:** Spin up workers dynamically using string-serialized scripts passed through `URL.createObjectURL` to remain entirely client-side and CORS-safe.
@@ -62,6 +66,8 @@ Offloads resource-intensive query compilation, filtering, and sorting to seconda
 
 ### Module 3: The Surgical Rendering Engine (The View)
 
+*📄 Detailed Specification: [docs/Module 3 The Surgical Rendering Engine (The View).md](docs/Module%203%20The%20Surgical%20Rendering%20Engine%20(The%20View).md)*
+
 High-performance rendering without virtual-DOM overhead.
 
 - **Virtual Grid / List Recycler:** An infinite visual scroller that monitors container heights and recycles a small, fixed pool of layout components to represent large datasets, avoiding massive memory allocations.
@@ -69,6 +75,8 @@ High-performance rendering without virtual-DOM overhead.
 - **Surgical Highlight Scanner (TreeWalker):** Traverses live DOM text nodes directly using native `TreeWalker` systems, isolating and highlighting queries surgically by creating `Range` boundaries and wrapping text in a styled inline marker without recreating surrounding parent containers.
 
 ### Module 4: The Reactive Pipeline & Streams (Asynchrony)
+
+*📄 Detailed Specification: [docs/Module 4 The Reactive Pipeline & Streams.md](docs/Module%204%20The%20Reactive%20Pipeline%20&%20Streams.md)*
 
 Ingests and schedules telemetry events under a strict CPU timeframe.
 
@@ -87,6 +95,12 @@ Components are encapsulated and isolated against style pollution and memory leak
 
 ```
 vanilla-micro-os/
+│
+├── docs/                       # Architectural design documentation per module
+│   ├── Module 1 The Core In-Memory Engine.md
+│   ├── Module 2 The Multi-Threaded Processor.md
+│   ├── Module 3 The Surgical Rendering Engine (The View).md
+│   └── Module 4 The Reactive Pipeline & Streams.md
 │
 ├── index.html                  # Main entrypoint layout. Loads orchestrator script
 ├── styles.css                  # CSS Variables & main theme configuration
