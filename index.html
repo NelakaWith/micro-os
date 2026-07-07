@@ -41,7 +41,7 @@
     </style>
   </head>
   <body
-    class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col overflow-x-hidden selection:bg-indigo-500/30 selection:text-indigo-200 hud-scanline"
+    class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col overflow-x-hidden selection:bg-indigo-500/30 selection:text-indigo-200 hud-scanline pr-64 lg:pr-80"
   >
     <!-- Top Navigation OS Bar -->
     <header
@@ -274,30 +274,7 @@
           </div>
         </div>
 
-        <!-- Interactive Console Logger -->
-        <div
-          class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-2xl backdrop-blur-sm flex flex-col h-64"
-        >
-          <div class="flex justify-between items-center mb-2">
-            <h2
-              class="text-xs font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
-            >
-              <span>💻</span> Activity Stream
-            </h2>
-            <button
-              id="btn-clear-logs"
-              class="text-[10px] text-slate-500 hover:text-slate-300 font-mono"
-            >
-              Clear
-            </button>
-          </div>
-          <div
-            id="activity-log"
-            class="bg-slate-950/80 rounded-lg p-3 font-mono text-[10px] overflow-y-auto flex-1 space-y-1 text-slate-300 border border-slate-950"
-          >
-            <div class="text-slate-500">// System operations log here.</div>
-          </div>
-        </div>
+        <!-- Interactive Console Logger moved to fixed sidebar -->
       </section>
 
       <!-- RIGHT COLUMN: Surgical Rendering Console Dashboard (lg:span-8) -->
@@ -326,6 +303,31 @@
       </section>
     </main>
 
+    <!-- Interactive Console Logger Sidebar -->
+    <aside
+      class="fixed right-0 top-[69px] bottom-0 w-64 lg:w-80 bg-slate-900/90 border-l border-slate-800/80 p-5 shadow-2xl backdrop-blur-md flex flex-col z-40"
+    >
+      <div class="flex justify-between items-center mb-2 shrink-0">
+        <h2
+          class="text-xs font-bold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+        >
+          <span>💻</span> Activity Stream
+        </h2>
+        <button
+          id="btn-clear-logs"
+          class="text-[10px] text-slate-500 hover:text-slate-300 font-mono"
+        >
+          Clear
+        </button>
+      </div>
+      <div
+        id="activity-log"
+        class="bg-slate-950/80 rounded-lg p-3 font-mono text-[10px] overflow-y-auto flex-1 space-y-1 text-slate-300 border border-slate-950"
+      >
+        <div class="text-slate-500">// System operations log here.</div>
+      </div>
+    </aside>
+
     <!-- OS Notification System HUD Overlay -->
     <div
       id="alert-toast"
@@ -343,6 +345,10 @@
       import { DatabaseEngine } from "./src/db/db-engine.js";
       import { WorkerPool } from "./src/worker/worker-pool.js";
       import { SysDashboard } from "./src/ui/sys-dashboard.js";
+
+      import { PriorityQueue } from "./src/streams/priority-queue.js";
+      import { systemMetricsStream } from "./src/streams/data-streams.js";
+      import { FrameScheduler } from "./src/streams/frame-scheduler.js";
 
       // 1. Initialize Kernel Layers
       const db = new DatabaseEngine();
@@ -638,6 +644,40 @@
           document.getElementById("activity-log").innerHTML =
             '<div class="text-slate-500">// System operations log here.</div>';
         });
+
+      // Initialize the Module 4 Telemetry Event Stream Pipeline
+      const telemetryQueue = new PriorityQueue();
+
+      // Instantiate the frame scheduler (allocated an 8ms tight runtime budget)
+      const telemetryScheduler = new FrameScheduler(
+        telemetryQueue,
+        (event) => {
+          let colorType = "system";
+          if (event.priority === 1) colorType = "err"; // Priority 1: Critical System Errors
+          if (event.priority === 2) colorType = "tx"; // Priority 2: Alerts & Warnings
+          if (event.priority === 3) colorType = "mut"; // Priority 3: Internal Engine Processes
+
+          // This pipes the sorted streams directly to your working UI console log panel!
+          logger(`[${event.type}] ${event.message}`, colorType);
+
+          if (event.priority === 1) {
+            triggerAlert(`Critical Event: ${event.type}!`);
+          }
+        },
+        8,
+      );
+
+      // Start the animation frame loops
+      telemetryScheduler.start();
+
+      // Boot and ingest the asynchronous telemetry data generator stream
+      const metricsGenerator = systemMetricsStream(400); // Ticks every 400ms
+      (async () => {
+        for await (const metric of metricsGenerator) {
+          // Bubbles items onto our priority min-heap queue based on priority weights
+          telemetryQueue.push(metric, metric.priority);
+        }
+      })();
 
       // Bootstrap visualizer state initially
       _refreshDashboardView();

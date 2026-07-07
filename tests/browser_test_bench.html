@@ -26,7 +26,7 @@
     </style>
   </head>
   <body
-    class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col"
+    class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col pr-64 lg:pr-80"
   >
     <!-- Top Navigation Header -->
     <header
@@ -237,30 +237,7 @@
           </div>
         </div>
 
-        <!-- Interactive Console Logger -->
-        <div
-          class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col h-64"
-        >
-          <div class="flex justify-between items-center mb-2">
-            <h2
-              class="text-sm font-semibold tracking-wider text-slate-400 uppercase"
-            >
-              💻 Activity Stream
-            </h2>
-            <button
-              id="btn-clear-logs"
-              class="text-xs text-slate-500 hover:text-slate-300 font-mono"
-            >
-              Clear
-            </button>
-          </div>
-          <div
-            id="activity-log"
-            class="bg-slate-950 rounded-lg p-3 font-mono text-xs overflow-y-auto flex-1 space-y-1 text-slate-300 border border-slate-900"
-          >
-            <div class="text-slate-500">// System operations log here.</div>
-          </div>
-        </div>
+        <!-- Interactive Console Logger moved to fixed sidebar -->
       </section>
 
       <!-- COLUMN 2: Memory spectator & Diagnostic Telemetry (lg:span-7) -->
@@ -495,6 +472,31 @@
         </div>
       </section>
     </main>
+
+    <!-- Interactive Console Logger Sidebar -->
+    <aside
+      class="fixed right-0 top-[69px] bottom-0 w-64 lg:w-80 bg-slate-900/90 border-l border-slate-800/80 p-5 shadow-2xl backdrop-blur-md flex flex-col z-40"
+    >
+      <div class="flex justify-between items-center mb-2 shrink-0">
+        <h2
+          class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2"
+        >
+          <span>💻</span> Activity Stream
+        </h2>
+        <button
+          id="btn-clear-logs"
+          class="text-xs text-slate-500 hover:text-slate-300 font-mono"
+        >
+          Clear
+        </button>
+      </div>
+      <div
+        id="activity-log"
+        class="bg-slate-950 rounded-lg p-3 font-mono text-xs overflow-y-auto flex-1 space-y-1 text-slate-300 border border-slate-900"
+      >
+        <div class="text-slate-500">// System operations log here.</div>
+      </div>
+    </aside>
 
     <!-- Visual Dashboard Overlay & Alerts -->
     <div
